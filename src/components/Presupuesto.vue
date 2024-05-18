@@ -1,9 +1,39 @@
 <script setup>
+    import {ref} from 'vue'
+    import Alerta from './Alerta.vue'
+
+    const presupuesto = ref(0);
+    const error = ref('')
+
+    const emit = defineEmits(['definir-presupuesto'])
+
+
+
+    const definirPresupuesto = () => {
+        if (presupuesto.value <= 0){
+            error.value = 'Presupuesto o valido'
+
+            setTimeout(() =>{
+                error.value = ''
+            },3000)
+
+            return
+        }
+
+        emit('definir-presupuesto', presupuesto.value)
+    }
 </script>
 
 
 <template>
-    <form action="">
+    <form 
+    class="presupuesto"
+    @submit.prevent="definirPresupuesto"
+    >
+
+        <Alerta v-if="error">
+            {{ error }}
+        </Alerta>
         <div class="campo">
             <label for="nuevo presupuesto">
                 Definir nuevo presupuesto
@@ -13,6 +43,9 @@
                 id="nuevo-presupuesto"
                 class="nuevo-presupuesto"
                 placeholder="Añade tu presupuesto"
+                type="number"
+                min="0"
+                v-model.number="presupuesto"
                 >
         </div>
 
@@ -22,4 +55,48 @@
 
 
 <style scoped>
+
+    .presupuesto{
+        width: 100%;
+    }
+
+    .campo{
+        display: grid;
+        gap: 2rem;
+    }
+
+    .presupuesto label{
+        font-size: 2.2rem;
+        text-align: center;
+        color: var(--azul);
+    }
+
+    .presupuesto input[type="number"]{
+        background-color: var(--gris-claro);
+        border-radius: 1rem;
+        padding: 1rem;
+        border: none;
+        font-size: 2.2rem;
+        text-align: center;
+    }
+
+    .presupuesto input[type="submit"]{
+        background-color: var(--azul);
+        padding: 1rem;
+        border: none;
+        font-size: 2rem;
+        text-align: center;
+        margin-top: 2rem;
+        color: white;
+        font-weight: 900;
+        width: 100%;
+        transition: background-color 300ms ease;
+    }
+
+    .presupuesto input[type="submit"]:hover{
+        background-color: #1048A4;
+        cursor: pointer;
+    }
+
+
 </style>
