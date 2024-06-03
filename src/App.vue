@@ -3,6 +3,7 @@ import {ref, reactive} from 'vue';
 import Presupuesto from './components/Presupuesto.vue';
 import ControlPresupuesto from './components/ControlPresupuesto.vue';
 import Modal from './components/Modal.vue';
+import {generarId} from './helpers';
 import iconoNuevoGasto from './assets/img/nuevo-gasto.svg'
 
 const modal = reactive({
@@ -13,6 +14,16 @@ const modal = reactive({
 const presupuesto = ref(0)
 const disponible = ref(0)
 
+const gasto = reactive({
+  nombre: '',
+  cantidad: '',
+  categoria: '',
+  id: '',
+  fecha: Date.now()
+})
+
+const gastos = ref([])
+
 const definirPresupuesto = (cantidad) => {
   presupuesto.value = cantidad
   disponible.value = cantidad //
@@ -20,7 +31,24 @@ const definirPresupuesto = (cantidad) => {
 
 const mostrarModal = () =>{
   modal.mostrar = true
-  modal.animar = true
+  setTimeout(()=>{
+    modal.animar = true
+  }, 300)
+}
+
+const ocultarModal = () =>{
+  modal.animar = false
+  setTimeout(()=>{
+    modal.mostrar = false
+  }, 300)
+}
+
+const guardarGasto = () => {
+    gastos.value.push({
+      ...gasto,
+      id: generarId()
+    })
+    console.log('gasto: ', gasto);
 }
 </script>
 
@@ -60,6 +88,12 @@ const mostrarModal = () =>{
 
       <Modal 
         v-if="modal.mostrar"
+        @ocultar-modal="ocultarModal"
+        @guardar-gasto="guardarGasto"
+        :modal="modal"
+        v-model:nombre = "gasto.nombre"
+        v-model:cantidad = "gasto.cantidad"
+        v-model:categoria = "gasto.categoria"
       />
     </main>
 
