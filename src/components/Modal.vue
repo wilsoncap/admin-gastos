@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import Alert from './Alerta.vue'
 import cerrarModal from '../assets/img/cerrar.svg'
 
@@ -59,7 +59,7 @@ const agregarGasto = () =>{
     // Que el usuario no gaste mas de  lo presupuestado
     if (id) {
         // tomar en cuenta el gasto ya realizado
-        if (cantidad > old + disponible){
+        if (cantidad > (old + disponible)){
             error.value = 'Has excedido el Presupuesto'
             setTimeout(()=>{
                 error.value = ''
@@ -79,7 +79,9 @@ const agregarGasto = () =>{
     emit('guardar-gasto')
 }
 
-
+const isEditing = computed(()=>{
+    return props.id
+})
 </script>
 
 
@@ -101,7 +103,7 @@ const agregarGasto = () =>{
                 class="nuevo-gasto"
                 @submit.prevent="agregarGasto"
             >
-                <legend>Anadir gasto</legend>
+                <legend>{{ isEditing ? 'Guardar Cambios' : 'Añadir Gasto' }}</legend>
 
                 <Alert v-if="error">{{ error }}</Alert>
 
@@ -145,7 +147,7 @@ const agregarGasto = () =>{
 
                 <input 
                     type="submit"
-                    value="Anadir Gasto"
+                    :value="[isEditing ? 'Guardar Cambios' : 'Añadir Gasto']"
                 >
             </form>
         </div>
