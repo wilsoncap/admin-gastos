@@ -1,5 +1,5 @@
 <script setup>
-import {ref, reactive} from 'vue';
+import {ref, reactive, watch} from 'vue';
 import Presupuesto from './components/Presupuesto.vue';
 import ControlPresupuesto from './components/ControlPresupuesto.vue';
 import Gasto from './components/Gasto.vue';
@@ -14,6 +14,7 @@ const modal = reactive({
 
 const presupuesto = ref(0)
 const disponible = ref(0)
+const gastado = ref(0);
 
 const gasto = reactive({
   nombre: '',
@@ -24,6 +25,23 @@ const gasto = reactive({
 })
 
 const gastos = ref([])
+
+watch(gastos, ()=>{
+  const totalGastado = gastos.value.reduce((total, gasto) => gasto.cantidad + total, 0)
+  gastado.value = totalGastado;
+  disponible.value = presupuesto.value - gastado.value
+}, {
+  deep: true//gastos es un arreglo que tiene muchos objetos
+})
+
+// la forma de fernando de la forma de resatear el modal en blanco
+watch(modal, ()=>{
+  if (!modal.mostrar) {
+    reiniciaStateGasto();
+  }
+}, {
+  deep: true
+})
 
 const definirPresupuesto = (cantidad) => {
   presupuesto.value = cantidad
@@ -40,6 +58,15 @@ const mostrarModal = () =>{
 const ocultarModal = () =>{
   modal.animar = false
   setTimeout(()=>{
+    // mi forma de resatear el modal en blanco
+    // reiniciaStateGasto()
+    // Object.assign(gasto, {
+    //   nombre: '',
+    //   cantidad: '',
+    //   categoria: '',
+    //   id: null,
+    //   fecha: Date.now()
+    // })
     modal.mostrar = false
   }, 300)
 }
@@ -52,7 +79,24 @@ const guardarGasto = () => {
     
     ocultarModal()
 
-    Object.assign(gasto, {
+    // Object.assign(gasto, {
+    //   nombre: '',
+    //   cantidad: '',
+    //   categoria: '',
+    //   id: null,
+    //   fecha: Date.now()
+    // })
+    reiniciaStateGasto()
+}
+
+const seleccionarGasto = id =>{
+  const gastosEditar = gastos.value.filter(gasto => gasto.id === id)[0];
+  Object.assign(gasto, gastosEditar);
+  mostrarModal();
+}
+
+const reiniciaStateGasto = ()=>{
+  Object.assign(gasto, {
       nombre: '',
       cantidad: '',
       categoria: '',
@@ -63,7 +107,9 @@ const guardarGasto = () => {
 </script>
 
 <template>
-  <div>
+  <div 
+    :class="{fijar: modal.mostrar}"
+  >
     <header>
       <h1>
         Planificador de Gastos
@@ -77,6 +123,7 @@ const guardarGasto = () => {
           v-else
           :presupuesto="presupuesto"
           :disponible="disponible"
+          :gastado="gastado"
         />
       </div>
     </header>
@@ -96,6 +143,7 @@ const guardarGasto = () => {
           v-for="gasto in gastos"
           :key="gasto.id"
           :gasto="gasto"
+          @seleccionar-gasto="seleccionarGasto"
         />
       </div>
 
@@ -112,6 +160,7 @@ const guardarGasto = () => {
         @ocultar-modal="ocultarModal"
         @guardar-gasto="guardarGasto"
         :modal="modal"
+        :disponible="disponible"
         v-model:nombre = "gasto.nombre"
         v-model:cantidad = "gasto.cantidad"
         v-model:categoria = "gasto.categoria"
@@ -153,6 +202,11 @@ const guardarGasto = () => {
 
  h2{
   font-size: 3rem;
+ }
+
+ .fijar{
+  overflow: hidden;
+  height: 100vh;
  }
 
  header{
