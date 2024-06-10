@@ -72,10 +72,18 @@ const ocultarModal = () =>{
 }
 
 const guardarGasto = () => {
-    gastos.value.push({
-      ...gasto,
-      id: generarId()
-    })
+    if (gasto.id) {
+      // Editando
+      const { id } = gasto;
+      const i = gastos.value.findIndex((gasto => gasto.id === id))
+      gastos.value[i] = {...gasto}
+    }else{
+      // Registro nuevo
+      gastos.value.push({
+        ...gasto,
+        id: generarId()
+      })
+    }
     
     ocultarModal()
 
@@ -87,9 +95,12 @@ const guardarGasto = () => {
     //   fecha: Date.now()
     // })
     reiniciaStateGasto()
+    console.log('gasto', gasto);
+    console.log('gastos', gastos);
 }
 
 const seleccionarGasto = id =>{
+  console.log('id actualizar', id);
   const gastosEditar = gastos.value.filter(gasto => gasto.id === id)[0];
   Object.assign(gasto, gastosEditar);
   mostrarModal();
