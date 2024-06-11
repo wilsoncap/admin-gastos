@@ -11,7 +11,7 @@ defineEmits(['update:filtro'])
                 <label for="filtro">Filtrar Gastos</label>
                 <select name="" 
                 id="filtro"
-                :value="categoria"
+                :value="filtro"
                 @input="$emit('update:filtro',  $event.target.value)"
             >
                 <option value="">-- Seleccione --</option>

@@ -1,5 +1,5 @@
 <script setup>
-import {ref, reactive, watch} from 'vue';
+import {ref, reactive, watch, computed, onMounted} from 'vue';
 import Presupuesto from './components/Presupuesto.vue';
 import ControlPresupuesto from './components/ControlPresupuesto.vue';
 import Gasto from './components/Gasto.vue';
@@ -32,6 +32,7 @@ watch(gastos, ()=>{
   const totalGastado = gastos.value.reduce((total, gasto) => gasto.cantidad + total, 0)
   gastado.value = totalGastado;
   disponible.value = presupuesto.value - gastado.value
+  localStorage.setItem('gastos', JSON.stringify(gastos.value))
 }, {
   deep: true//gastos es un arreglo que tiene muchos objetos
 })
@@ -43,6 +44,20 @@ watch(modal, ()=>{
   }
 }, {
   deep: true
+})
+
+watch(presupuesto, ()=>{
+  localStorage.setItem('presuspuesto', presupuesto.value)
+})
+
+onMounted(()=>{
+  const presupuestoStorage = localStorage.getItem('presuspuesto');
+  presupuesto.value = Number(presupuestoStorage)
+  disponible.value = Number(presupuestoStorage)
+  const gastosStorage = localStorage.getItem('gastos');
+  if (gastosStorage) {
+    gastos.value = JSON.parse(gastosStorage)
+  }
 })
 
 const definirPresupuesto = (cantidad) => {
@@ -97,12 +112,9 @@ const guardarGasto = () => {
     //   fecha: Date.now()
     // })
     reiniciaStateGasto()
-    console.log('gasto', gasto);
-    console.log('gastos', gastos);
 }
 
 const seleccionarGasto = id =>{
-  console.log('id actualizar', id);
   const gastosEditar = gastos.value.filter(gasto => gasto.id === id)[0];
   Object.assign(gasto, gastosEditar);
   mostrarModal();
@@ -124,6 +136,20 @@ const reiniciaStateGasto = ()=>{
       fecha: Date.now()
     })
 }
+
+const gastosFiltrados = computed(()=>{
+  if (filtro.value) {
+    return gastos.value.filter(gasto => gasto.categoria === filtro.value)
+  }
+  return gastos.value
+})
+
+const resetApp = () => {
+  if (confirm('Deseas reiniciar presupuesto y gastos?')) {
+    gastos.value = [];
+    presupuesto.value = 0
+  }
+}
 </script>
 
 <template>
@@ -144,13 +170,11 @@ const reiniciaStateGasto = ()=>{
           :presupuesto="presupuesto"
           :disponible="disponible"
           :gastado="gastado"
+          @reset-app="resetApp"
         />
       </div>
     </header>
 
-   
-
-    <Filtro />
   </div>
 
 
@@ -159,10 +183,10 @@ const reiniciaStateGasto = ()=>{
         v-model:filtro="filtro"
       />
       <div class="listado-gastos contenedor">
-        <h2>{{ gastos.length > 0 ? 'Gastos' : 'No hay gastos' }}</h2>
+        <h2>{{ gastosFiltrados.length > 0 ? 'Gastos' : 'No hay gastos' }}</h2>
 
         <Gasto 
-          v-for="gasto in gastos"
+          v-for="gasto in gastosFiltrados"
           :key="gasto.id"
           :gasto="gasto"
           @seleccionar-gasto="seleccionarGasto"
